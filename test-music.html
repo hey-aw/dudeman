@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - The Entertainer Chiptune</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4A90D9;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+        button:hover {
+            background-color: #5AA0E9;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>The Entertainer - Chiptune</h1>
+    <button id="playBtn">Play Music</button>
+
+    <script>
+        var audioContext = null;
+        var musicStarted = false;
+
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API not supported');
+                alert('Web Audio API not supported in this browser');
+            }
+        }
+
+        function noteToFreq(note) {
+            var notes = {
+                'C3': 130.81, 'E3': 164.81, 'G3': 196.00, 'A3': 220.00, 'B3': 246.94,
+                'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23, 'G4': 392.00, 'A4': 440.00, 'B4': 493.88,
+                'C5': 523.25, 'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99, 'A5': 880.00, 'B5': 987.77
+            };
+            return notes[note] || 261.63;
+        }
+
+        function playNote(note, startTime, duration, waveType, volume) {
+            if (!audioContext) return;
+
+            var oscillator = audioContext.createOscillator();
+            var gainNode = audioContext.createGain();
+
+            oscillator.type = waveType || 'square';
+            oscillator.frequency.value = noteToFreq(note);
+
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(volume || 0.2, startTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start(startTime);
+            oscillator.stop(startTime + duration);
+        }
+
+        function playRagtimeMusic() {
+            if (!audioContext || musicStarted) return;
+            musicStarted = true;
+
+            // "The Entertainer" by Scott Joplin - opening A section
+            // The famous syncopated opening motif
+            var melody = [
+                { note: 'D5', time: 0.0, dur: 0.125 },
+                { note: 'D5', time: 0.125, dur: 0.125 },
+                { note: 'E5', time: 0.25, dur: 0.25 },
+                { note: 'C5', time: 0.5, dur: 0.25 },
+                { note: 'E5', time: 0.75, dur: 0.125 },
+                { note: 'C5', time: 0.875, dur: 0.125 },
+                { note: 'E5', time: 1.0, dur: 0.125 },
+                { note: 'C5', time: 1.125, dur: 0.25 },
+                { note: 'D5', time: 1.375, dur: 0.125 },
+                { note: 'D5', time: 1.5, dur: 0.125 },
+                { note: 'E5', time: 1.625, dur: 0.25 },
+                { note: 'C5', time: 1.875, dur: 0.25 },
+                { note: 'E5', time: 2.125, dur: 0.125 },
+                { note: 'C5', time: 2.25, dur: 0.125 },
+                { note: 'E5', time: 2.375, dur: 0.125 },
+                { note: 'C5', time: 2.5, dur: 0.375 },
+                { note: 'A4', time: 2.875, dur: 0.125 },
+                { note: 'A4', time: 3.0, dur: 0.125 },
+                { note: 'B4', time: 3.125, dur: 0.25 },
+                { note: 'G4', time: 3.375, dur: 0.25 },
+                { note: 'B4', time: 3.625, dur: 0.125 },
+                { note: 'G4', time: 3.75, dur: 0.125 },
+                { note: 'B4', time: 3.875, dur: 0.125 },
+                { note: 'G4', time: 4.0, dur: 0.25 },
+                { note: 'A4', time: 4.25, dur: 0.125 },
+                { note: 'A4', time: 4.375, dur: 0.125 },
+                { note: 'B4', time: 4.5, dur: 0.25 },
+                { note: 'G4', time: 4.75, dur: 0.25 },
+                { note: 'B4', time: 5.0, dur: 0.125 },
+                { note: 'G4', time: 5.125, dur: 0.125 },
+                { note: 'B4', time: 5.25, dur: 0.125 },
+                { note: 'G4', time: 5.375, dur: 0.375 },
+                { note: 'C5', time: 5.75, dur: 0.5 }
+            ];
+
+            // Bass pattern (oom-pah ragtime style - C major)
+            var bass = [
+                { note: 'C3', time: 0.0, dur: 0.25 },
+                { note: 'E3', time: 0.25, dur: 0.25 },
+                { note: 'G3', time: 0.5, dur: 0.25 },
+                { note: 'C3', time: 0.75, dur: 0.25 },
+                { note: 'E3', time: 1.0, dur: 0.25 },
+                { note: 'G3', time: 1.25, dur: 0.25 },
+                { note: 'C3', time: 1.5, dur: 0.25 },
+                { note: 'E3', time: 1.75, dur: 0.25 },
+                { note: 'G3', time: 2.0, dur: 0.25 },
+                { note: 'C3', time: 2.25, dur: 0.25 },
+                { note: 'E3', time: 2.5, dur: 0.25 },
+                { note: 'G3', time: 2.75, dur: 0.25 },
+                { note: 'C3', time: 3.0, dur: 0.25 },
+                { note: 'E3', time: 3.25, dur: 0.25 },
+                { note: 'G3', time: 3.5, dur: 0.25 },
+                { note: 'C3', time: 3.75, dur: 0.25 },
+                { note: 'E3', time: 4.0, dur: 0.25 },
+                { note: 'G3', time: 4.25, dur: 0.25 },
+                { note: 'C3', time: 4.5, dur: 0.25 },
+                { note: 'E3', time: 4.75, dur: 0.25 },
+                { note: 'G3', time: 5.0, dur: 0.25 },
+                { note: 'C3', time: 5.25, dur: 0.25 },
+                { note: 'E3', time: 5.5, dur: 0.25 },
+                { note: 'G3', time: 5.75, dur: 0.5 }
+            ];
+
+            var startTime = audioContext.currentTime + 0.1;
+
+            // Play melody
+            for (var i = 0; i < melody.length; i++) {
+                var m = melody[i];
+                playNote(m.note, startTime + m.time, m.dur, 'square', 0.3);
+            }
+
+            // Play bass
+            for (var i = 0; i < bass.length; i++) {
+                var b = bass[i];
+                playNote(b.note, startTime + b.time, b.dur, 'sawtooth', 0.25);
+            }
+        }
+
+        // Initialize audio on page load
+        initAudio();
+
+        // Button click handler
+        document.getElementById('playBtn').addEventListener('click', function() {
+            if (audioContext) {
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                musicStarted = false;
+                playRagtimeMusic();
+            }
+        });
+    </script>
+</body>
+</html>
