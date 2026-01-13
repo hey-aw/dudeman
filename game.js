@@ -96,9 +96,21 @@ var Game = (function() {
 
         var self = this;
         var buttons = controls.querySelectorAll('[data-action]');
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        var touchEnabled = false;
+
+        var enableTouchUI = function() {
+            if (touchEnabled) {
+                return;
+            }
+            touchEnabled = true;
             document.body.classList.add('touch-enabled');
+        };
+
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
+            enableTouchUI();
         }
+
+        window.addEventListener('touchstart', enableTouchUI, { passive: true, once: true });
 
         var pressAction = function(action) {
             switch (action) {
