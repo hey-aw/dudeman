@@ -79,6 +79,7 @@ var Game = (function() {
         }
 
         this.setupTouchControls();
+        this.setupTouchScrollPrevention();
 
         // Start game loop
         this.lastTime = 0;
@@ -95,6 +96,9 @@ var Game = (function() {
 
         var self = this;
         var buttons = controls.querySelectorAll('[data-action]');
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            document.body.classList.add('touch-enabled');
+        }
 
         var pressAction = function(action) {
             switch (action) {
@@ -151,6 +155,21 @@ var Game = (function() {
             button.addEventListener('mouseup', handleRelease);
             button.addEventListener('mouseleave', handleRelease);
         });
+    };
+
+    Game.prototype.setupTouchScrollPrevention = function() {
+        var canvas = document.getElementById('gameCanvas');
+        if (!canvas) {
+            return;
+        }
+
+        canvas.addEventListener('touchstart', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(event) {
+            event.preventDefault();
+        }, { passive: false });
     };
 
     Game.prototype.loadLevel = function(levelNumber) {
