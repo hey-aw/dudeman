@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Platformer - High School Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a2e;
+            font-family: Arial, sans-serif;
+        }
+        
+        #gameContainer {
+            position: relative;
+            border: 4px solid #16213e;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        #gameCanvas {
+            display: block;
+            background-color: #87CEEB;
+        }
+        
+        #instructions {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="instructions">Arrow Keys: Move | Space: Jump | Reach the green flag to win!</div>
+    </div>
+
+    <script>
+        // ============================================
+        // SIMPLE PLATFORMER GAME - HIGH SCHOOL PROJECT
+        // ============================================
+        
+        // Get canvas and context
+        var canvas = document.getElementById('gameCanvas');
+        var ctx = canvas.getContext('2d');
+        var width = canvas.width;
+        var height = canvas.height;
+        
+        // ============================================
+        // PLAYER OBJECT
+        // ============================================
+        var player = {
+            x: 50,
+            y: 100,
+            width: 40,
+            height: 50,
+            vx: 0,  // velocity x
+            vy: 0,  // velocity y
+            speed: 5,
+            jumpForce: -12,
+            gravity: 0.5,
+            grounded: false,
+            color: '#4A90D9'
+        };
+        
+        // ============================================
+        // PLATFORMS
+        // ============================================
+        var platforms = [
+            {x: 0, y: 550, width: 200, height: 50},      // Starting platform
+            {x: 250, y: 500, width: 150, height: 50},     // Platform 1
+            {x: 450, y: 400, width: 150, height: 50},     // Platform 2
+            {x: 650, y: 300, width: 150, height: 50},    // Platform 3
+            {x: 700, y: 200, width: 100, height: 50}     // Final platform with flag
+        ];
+        
+        // ============================================
+        // GOAL FLAG
+        // ============================================
+        var flag = {
+            x: 720,
+            y: 150,
+            width: 30,
+            height: 50
+        };
+        
+        // ============================================
+        // INPUT HANDLING
+        // ============================================
+        var keys = {
+            left: false,
+            right: false,
+            jump: false
+        };
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                keys.left = true;
+            }
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                keys.right = true;
+            }
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                e.preventDefault();
+                keys.jump = true;
+            }
+        });
+        
+        document.addEventListener('keyup', function(e) {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                keys.left = false;
+            }
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                keys.right = false;
+            }
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                keys.jump = false;
+            }
+        });
+        
+        // ============================================
+        // COLLISION DETECTION
+        // ============================================
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+        
+        // ============================================
+        // GAME UPDATE
+        // ============================================
+        function update() {
+            // Horizontal movement
+            if (keys.left) {
+                player.vx = -player.speed;
+            } else if (keys.right) {
+                player.vx = player.speed;
+            } else {
+                player.vx = 0;
+            }
+            
+            // Jump
+            if (keys.jump && player.grounded) {
+                player.vy = player.jumpForce;
+                player.grounded = false;
+            }
+            
+            // Apply gravity
+            player.vy += player.gravity;
+            
+            // Update position
+            player.x += player.vx;
+            player.y += player.vy;
+            
+            // Check platform collisions
+            player.grounded = false;
+            for (var i = 0; i < platforms.length; i++) {
+                var platform = platforms[i];
+                
+                // Check if player is colliding with platform
+                if (checkCollision(player, platform)) {
+                    // If player is above platform (falling onto it)
+                    if (player.vy > 0 && player.y < platform.y) {
+                        player.y = platform.y - player.height;
+                        player.vy = 0;
+                        player.grounded = true;
+                    }
+                    // If player hits platform from below
+                    else if (player.vy < 0 && player.y > platform.y) {
+                        player.y = platform.y + platform.height;
+                        player.vy = 0;
+                    }
+                    // Side collisions
+                    else if (player.vx > 0) {
+                        player.x = platform.x - player.width;
+                    } else if (player.vx < 0) {
+                        player.x = platform.x + platform.width;
+                    }
+                }
+            }
+            
+            // Keep player in bounds
+            if (player.x < 0) player.x = 0;
+            if (player.x > width - player.width) player.x = width - player.width;
+            
+            // Check if player falls off screen
+            if (player.y > height + 100) {
+                // Reset player
+                player.x = 50;
+                player.y = 100;
+                player.vx = 0;
+                player.vy = 0;
+            }
+            
+            // Check if player reached the flag
+            if (checkCollision(player, flag)) {
+                // Win condition - show message
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('YOU WIN!', width / 2, height / 2);
+            }
+        }
+        
+        // ============================================
+        // DRAWING
+        // ============================================
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw platforms
+            ctx.fillStyle = '#8B4513';
+            for (var i = 0; i < platforms.length; i++) {
+                var platform = platforms[i];
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                // Add a border
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+            }
+            
+            // Draw flag
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(flag.x, flag.y, flag.width, flag.height);
+            // Flag pole
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(flag.x + 10, flag.y, 5, flag.height);
+            // Flag banner
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.moveTo(flag.x + 15, flag.y);
+            ctx.lineTo(flag.x + 30, flag.y + 10);
+            ctx.lineTo(flag.x + 15, flag.y + 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw player
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            // Add eyes
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(player.x + 10, player.y + 10, 8, 8);
+            ctx.fillRect(player.x + 22, player.y + 10, 8, 8);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(player.x + 12, player.y + 12, 4, 4);
+            ctx.fillRect(player.x + 24, player.y + 12, 4, 4);
+            
+            // Draw win message if player reached flag
+            if (checkCollision(player, flag)) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('YOU WIN!', width / 2, height / 2 - 20);
+                ctx.font = '24px Arial';
+                ctx.fillText('Refresh to play again', width / 2, height / 2 + 30);
+            }
+        }
+        
+        // ============================================
+        // GAME LOOP
+        // ============================================
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Start the game
+        gameLoop();
+    </script>
+</body>
+</html>
