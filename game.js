@@ -78,11 +78,110 @@ var Game = (function() {
             });
         }
 
+        this.setupTouchControls();
+        this.setupTouchScrollPrevention();
+
         // Start game loop
         this.lastTime = 0;
         requestAnimationFrame(function(time) {
             self.gameLoop(time);
         });
+    };
+
+    Game.prototype.setupTouchControls = function() {
+        var controls = document.getElementById('touchControls');
+        if (!controls) {
+            return;
+        }
+
+        var self = this;
+        var buttons = controls.querySelectorAll('[data-action]');
+        var touchEnabled = false;
+
+        var enableTouchUI = function() {
+            if (touchEnabled) {
+                return;
+            }
+            touchEnabled = true;
+            document.body.classList.add('touch-enabled');
+        };
+
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0) {
+            enableTouchUI();
+        }
+
+        window.addEventListener('touchstart', enableTouchUI, { passive: true, once: true });
+
+        var pressAction = function(action) {
+            switch (action) {
+                case 'left':
+                    self.keys.left = true;
+                    break;
+                case 'right':
+                    self.keys.right = true;
+                    break;
+                case 'jump':
+                    self.keys.jump = true;
+                    break;
+                case 'interact':
+                    self.keys.interact = true;
+                    self.handleInteract();
+                    break;
+            }
+        };
+
+        var releaseAction = function(action) {
+            switch (action) {
+                case 'left':
+                    self.keys.left = false;
+                    break;
+                case 'right':
+                    self.keys.right = false;
+                    break;
+                case 'jump':
+                    self.keys.jump = false;
+                    break;
+                case 'interact':
+                    self.keys.interact = false;
+                    break;
+            }
+        };
+
+        buttons.forEach(function(button) {
+            var action = button.getAttribute('data-action');
+
+            var handlePress = function(event) {
+                event.preventDefault();
+                pressAction(action);
+            };
+
+            var handleRelease = function(event) {
+                event.preventDefault();
+                releaseAction(action);
+            };
+
+            button.addEventListener('touchstart', handlePress, { passive: false });
+            button.addEventListener('touchend', handleRelease);
+            button.addEventListener('touchcancel', handleRelease);
+            button.addEventListener('mousedown', handlePress);
+            button.addEventListener('mouseup', handleRelease);
+            button.addEventListener('mouseleave', handleRelease);
+        });
+    };
+
+    Game.prototype.setupTouchScrollPrevention = function() {
+        var canvas = document.getElementById('gameCanvas');
+        if (!canvas) {
+            return;
+        }
+
+        canvas.addEventListener('touchstart', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function(event) {
+            event.preventDefault();
+        }, { passive: false });
     };
 
     Game.prototype.loadLevel = function(levelNumber) {
