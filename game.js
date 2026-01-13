@@ -78,10 +78,78 @@ var Game = (function() {
             });
         }
 
+        this.setupTouchControls();
+
         // Start game loop
         this.lastTime = 0;
         requestAnimationFrame(function(time) {
             self.gameLoop(time);
+        });
+    };
+
+    Game.prototype.setupTouchControls = function() {
+        var controls = document.getElementById('touchControls');
+        if (!controls) {
+            return;
+        }
+
+        var self = this;
+        var buttons = controls.querySelectorAll('[data-action]');
+
+        var pressAction = function(action) {
+            switch (action) {
+                case 'left':
+                    self.keys.left = true;
+                    break;
+                case 'right':
+                    self.keys.right = true;
+                    break;
+                case 'jump':
+                    self.keys.jump = true;
+                    break;
+                case 'interact':
+                    self.keys.interact = true;
+                    self.handleInteract();
+                    break;
+            }
+        };
+
+        var releaseAction = function(action) {
+            switch (action) {
+                case 'left':
+                    self.keys.left = false;
+                    break;
+                case 'right':
+                    self.keys.right = false;
+                    break;
+                case 'jump':
+                    self.keys.jump = false;
+                    break;
+                case 'interact':
+                    self.keys.interact = false;
+                    break;
+            }
+        };
+
+        buttons.forEach(function(button) {
+            var action = button.getAttribute('data-action');
+
+            var handlePress = function(event) {
+                event.preventDefault();
+                pressAction(action);
+            };
+
+            var handleRelease = function(event) {
+                event.preventDefault();
+                releaseAction(action);
+            };
+
+            button.addEventListener('touchstart', handlePress, { passive: false });
+            button.addEventListener('touchend', handleRelease);
+            button.addEventListener('touchcancel', handleRelease);
+            button.addEventListener('mousedown', handlePress);
+            button.addEventListener('mouseup', handleRelease);
+            button.addEventListener('mouseleave', handleRelease);
         });
     };
 

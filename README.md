@@ -14,6 +14,7 @@ Then navigate to `http://localhost:8080`
 - **Arrow Keys** or **WASD**: Move left/right
 - **Space** or **Up Arrow**: Jump
 - **E**: Interact (eat hamburger in Level 2)
+- **Touchscreen**: Use the on-screen controls on mobile devices
 
 ## Game Overview
 
