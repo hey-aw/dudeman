@@ -497,12 +497,14 @@ var Game = (function() {
         // Reset level elements
         this.level.reset();
 
-        // Reset spawners
+        // Reset and restart spawners
         if (this.anvilSpawner) {
             this.anvilSpawner.reset();
+            this.anvilSpawner.start();
         }
         if (this.birdSpawner) {
             this.birdSpawner.reset();
+            this.birdSpawner.start();
         }
 
         // Reset camera
